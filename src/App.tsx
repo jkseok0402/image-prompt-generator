@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 
 interface OptionProps {
   $isSelected?: boolean;
@@ -9,33 +9,56 @@ interface StyledCheckboxProps {
   $checked?: boolean;
 }
 
+interface CopyButtonProps {
+  $visible?: boolean;
+}
+
+const GlobalStyle = createGlobalStyle`
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  input, textarea {
+    font-family: inherit;
+  }
+`;
+
 const Container = styled.div`
   max-width: 1200px;
-  height: 100vh;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  gap: 16px;
+  gap: 12px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 `;
 
 const Title = styled.h1`
   text-align: center;
   color: #1a73e8;
-  margin: 0 0 12px 0;
-  font-size: 1.5rem;
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
   font-weight: 600;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 `;
 
 const TopSection = styled.div`
   display: flex;
-  gap: 24px;
+  gap: 48px;
   margin-bottom: 8px;
-  align-items: stretch;
-  min-height: 80px;
+  align-items: flex-start;
   background-color: #f8f9fa;
   padding: 16px;
   border-radius: 12px;
@@ -43,7 +66,7 @@ const TopSection = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 16px;
+    gap: 32px;
   }
 `;
 
@@ -51,16 +74,23 @@ const InputSection = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 80px;
-  gap: 8px;
+  gap: 12px;
+  width: 100%;
 `;
 
 const ResultSection = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 80px;
-  gap: 8px;
+  gap: 12px;
+  width: 100%;
+`;
+
+const ResultHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 20px;
 `;
 
 const SectionTitle = styled.h3`
@@ -68,18 +98,22 @@ const SectionTitle = styled.h3`
   color: #5f6368;
   font-size: 0.95rem;
   font-weight: 500;
+  height: 20px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 `;
 
 const PromptInput = styled.textarea`
   width: 100%;
-  flex: 1;
-  padding: 12px;
+  height: 60px;
+  padding: 12px 16px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   resize: none;
   font-size: 0.9rem;
-  min-height: 60px;
+  line-height: 1.5;
   transition: border-color 0.2s ease;
+  background-color: white;
   
   &:focus {
     outline: none;
@@ -90,12 +124,11 @@ const PromptInput = styled.textarea`
 
 const Result = styled.div`
   background-color: white;
-  padding: 12px;
+  padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  flex: 1;
+  height: 60px;
   overflow-y: auto;
-  min-height: 60px;
   font-size: 0.9rem;
   line-height: 1.5;
   color: #3c4043;
@@ -106,10 +139,10 @@ const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin: 12px 0;
+  margin: 4px 0;
   position: relative;
   z-index: 1;
-  padding: 8px;
+  padding: 4px;
 `;
 
 const GenerateButton = styled.button`
@@ -153,11 +186,38 @@ const SaveButton = styled(GenerateButton)`
   }
 `;
 
+const CopyButton = styled.button<CopyButtonProps>`
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #34a853;
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  visibility: ${props => props.$visible ? 'visible' : 'hidden'};
+  opacity: ${props => props.$visible ? 1 : 0};
+
+  &:hover {
+    background-color: #2d8746;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 const CategoryContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
+  gap: 8px;
   padding: 4px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
 
   @media (max-width: 1400px) {
     grid-template-columns: repeat(5, 1fr);
@@ -178,31 +238,32 @@ const CategoryContainer = styled.div`
 
 const Category = styled.div`
   border: 1px solid #e0e0e0;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 8px;
   background-color: white;
   display: flex;
   flex-direction: column;
   height: fit-content;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
   }
 `;
 
 const CategoryTitle = styled.h3`
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   color: #1a73e8;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding-bottom: 6px;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  letter-spacing: -0.2px;
 `;
 
 const ResetButton = styled.button`
@@ -242,10 +303,10 @@ const GlobalResetButton = styled(ResetButton)`
 `;
 
 const OptionContainer = styled.div`
-  max-height: 120px;
+  max-height: 110px;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-top: 4px;
+  padding-right: 6px;
+  margin-top: 2px;
   
   &::-webkit-scrollbar {
     width: 4px;
@@ -267,16 +328,18 @@ const OptionContainer = styled.div`
 `;
 
 const Option = styled.div<OptionProps>`
-  margin: 4px 0;
-  font-size: 0.85rem;
+  margin: 2px 0;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
   transition: all 0.2s ease;
   cursor: pointer;
   background-color: ${props => props.$isSelected ? '#e8f0fe' : 'transparent'};
   color: ${props => props.$isSelected ? '#1a73e8' : '#3c4043'};
+  letter-spacing: -0.2px;
+  font-weight: ${props => props.$isSelected ? '500' : '400'};
   
   &:hover {
     background-color: ${props => props.$isSelected ? '#d2e3fc' : '#f1f3f4'};
@@ -312,9 +375,9 @@ const Checkbox = styled.input<StyledCheckboxProps>`
 `;
 
 const SavedPromptsContainer = styled.div`
-  margin-top: 16px;
+  margin-top: 12px;
   border-top: 1px solid #e0e0e0;
-  padding-top: 16px;
+  padding-top: 12px;
 `;
 
 const SavedPromptsList = styled.div`
@@ -397,6 +460,11 @@ const SmallButton = styled.button`
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
+`;
+
+const SmallCopyButton = styled(CopyButton)`
+  padding: 4px 8px;
+  font-size: 0.75rem;
 `;
 
 interface SavedPrompt {
@@ -770,103 +838,156 @@ function App() {
     setSelectedOptions({});
   };
 
+  const handleSavedPromptCopy = (text: string, buttonId: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        const copyButton = document.getElementById(buttonId);
+        if (copyButton) {
+          const originalText = copyButton.innerText;
+          copyButton.innerText = '복사됨!';
+          setTimeout(() => {
+            copyButton.innerText = originalText;
+          }, 2000);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+  };
+
   return (
-    <Container>
-      <HeaderContainer>
-        <Title>이미지/동영상 프롬프트 생성기</Title>
-        <GlobalResetButton onClick={handleResetAll}>
-          전체 초기화
-        </GlobalResetButton>
-      </HeaderContainer>
+    <>
+      <GlobalStyle />
+      <Container>
+        <HeaderContainer>
+          <Title>✨ 이미지/동영상 프롬프트 생성기</Title>
+          <GlobalResetButton onClick={handleResetAll}>
+            🔄 전체 초기화
+          </GlobalResetButton>
+        </HeaderContainer>
 
-      <TopSection>
-        <InputSection>
-          <SectionTitle>프롬프트 입력</SectionTitle>
-          <PromptInput
-            placeholder="기본 프롬프트를 입력하세요 (한글)"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
-        </InputSection>
+        <TopSection>
+          <InputSection>
+            <SectionTitle>✏️ 프롬프트 입력</SectionTitle>
+            <PromptInput
+              placeholder="기본 프롬프트를 입력하세요 (한글)"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+          </InputSection>
 
-        <ResultSection>
-          <SectionTitle>생성된 프롬프트</SectionTitle>
-          <Result>
-            {result || '선택된 옵션들이 여기에 표시됩니다.'}
-          </Result>
-        </ResultSection>
-      </TopSection>
-
-      <ButtonContainer>
-        <GenerateButton onClick={generatePrompt}>
-          프롬프트 생성
-        </GenerateButton>
-        {result && (
-          <SaveButton onClick={savePrompt}>
-            프롬프트 저장
-          </SaveButton>
-        )}
-      </ButtonContainer>
-
-      <CategoryContainer>
-        {Object.entries(categories).map(([category, options]) => (
-          <Category key={category}>
-            <CategoryTitle>
-              {category}
-              {selectedOptions[category]?.length > 0 && (
-                <ResetButton onClick={() => handleResetCategory(category)}>
-                  초기화
-                </ResetButton>
+          <ResultSection>
+            <ResultHeader>
+              <SectionTitle>🎨 생성된 프롬프트</SectionTitle>
+              {result && (
+                <CopyButton id="copyButton" onClick={() => handleSavedPromptCopy(result, 'copyButton')}>
+                  📋 복사
+                </CopyButton>
               )}
-            </CategoryTitle>
-            <OptionContainer>
-              {Object.entries(options).map(([option, translation]) => (
-                <Option 
-                  key={option} 
-                  $isSelected={selectedOptions[category]?.includes(option) || false}
-                  onClick={() => handleOptionChange(category, option)}
-                >
-                  <Checkbox
-                    type="checkbox"
-                    $checked={selectedOptions[category]?.includes(option) || false}
-                    onChange={() => {}}
-                  />
-                  {option}
-                </Option>
-              ))}
-            </OptionContainer>
-          </Category>
-        ))}
-      </CategoryContainer>
+            </ResultHeader>
+            <Result>
+              {result || '선택된 옵션들이 여기에 표시됩니다.'}
+            </Result>
+          </ResultSection>
+        </TopSection>
 
-      {savedPrompts.length > 0 && (
-        <SavedPromptsContainer>
-          <SectionTitle>저장된 프롬프트</SectionTitle>
-          <SavedPromptsList>
-            {savedPrompts.map(savedPrompt => (
-              <SavedPromptItem key={savedPrompt.id}>
-                <SavedPromptText>{savedPrompt.english}</SavedPromptText>
-                <SavedPromptActions>
-                  <SmallButton
-                    color="#28a745"
-                    onClick={() => loadPrompt(savedPrompt)}
-                  >
-                    불러오기
-                  </SmallButton>
-                  <SmallButton
-                    color="#dc3545"
-                    onClick={() => deletePrompt(savedPrompt.id)}
-                  >
-                    삭제
-                  </SmallButton>
-                </SavedPromptActions>
-              </SavedPromptItem>
-            ))}
-          </SavedPromptsList>
-        </SavedPromptsContainer>
-      )}
-    </Container>
+        <ButtonContainer>
+          <GenerateButton onClick={generatePrompt}>
+            ⚡ 프롬프트 생성
+          </GenerateButton>
+          {result && (
+            <SaveButton onClick={savePrompt}>
+              💾 프롬프트 저장
+            </SaveButton>
+          )}
+        </ButtonContainer>
+
+        <CategoryContainer>
+          {Object.entries(categories).map(([category, options]) => {
+            const categoryEmoji = getCategoryEmoji(category);
+            return (
+              <Category key={category}>
+                <CategoryTitle>
+                  {categoryEmoji} {category}
+                  {selectedOptions[category]?.length > 0 && (
+                    <ResetButton onClick={() => handleResetCategory(category)}>
+                      ↺ 초기화
+                    </ResetButton>
+                  )}
+                </CategoryTitle>
+                <OptionContainer>
+                  {Object.entries(options).map(([option, translation]) => (
+                    <Option 
+                      key={option} 
+                      $isSelected={selectedOptions[category]?.includes(option) || false}
+                      onClick={() => handleOptionChange(category, option)}
+                    >
+                      <Checkbox
+                        type="checkbox"
+                        $checked={selectedOptions[category]?.includes(option) || false}
+                        onChange={() => {}}
+                      />
+                      {option}
+                    </Option>
+                  ))}
+                </OptionContainer>
+              </Category>
+            );
+          })}
+        </CategoryContainer>
+
+        {savedPrompts.length > 0 && (
+          <SavedPromptsContainer>
+            <SectionTitle>📚 저장된 프롬프트</SectionTitle>
+            <SavedPromptsList>
+              {savedPrompts.map(savedPrompt => (
+                <SavedPromptItem key={savedPrompt.id}>
+                  <SavedPromptText>{savedPrompt.english}</SavedPromptText>
+                  <SavedPromptActions>
+                    <SmallButton
+                      color="#28a745"
+                      onClick={() => loadPrompt(savedPrompt)}
+                    >
+                      📥 불러오기
+                    </SmallButton>
+                    <SmallButton
+                      color="#1a73e8"
+                      onClick={() => handleSavedPromptCopy(savedPrompt.english, `copy-${savedPrompt.id}`)}
+                      id={`copy-${savedPrompt.id}`}
+                    >
+                      📋 복사
+                    </SmallButton>
+                    <SmallButton
+                      color="#dc3545"
+                      onClick={() => deletePrompt(savedPrompt.id)}
+                    >
+                      🗑️ 삭제
+                    </SmallButton>
+                  </SavedPromptActions>
+                </SavedPromptItem>
+              ))}
+            </SavedPromptsList>
+          </SavedPromptsContainer>
+        )}
+      </Container>
+    </>
   );
 }
 
-export default App; 
+export default App;
+
+const getCategoryEmoji = (category: string): string => {
+  const emojiMap: { [key: string]: string } = {
+    '구도': '📐',
+    '색상': '🎨',
+    '매체': '🖼️',
+    '조명': '💡',
+    '시간대 조명': '🌅',
+    '스타일라이즈': '✨',
+    '아트 스타일': '🖌️',
+    '분위기': '🌈',
+    '품질': '⭐',
+    '효과': '✨'
+  };
+  return emojiMap[category] || '📌';
+}; 
