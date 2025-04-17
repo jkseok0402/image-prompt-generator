@@ -752,7 +752,9 @@ function App() {
     // 저장된 프롬프트 불러오기
     const saved = localStorage.getItem('savedPrompts');
     if (saved) {
-      setSavedPrompts(JSON.parse(saved));
+      // 타임스탬프 기준 내림차순 정렬 (최신순)
+      const parsedPrompts = JSON.parse(saved);
+      setSavedPrompts(parsedPrompts.sort((a: SavedPrompt, b: SavedPrompt) => b.timestamp - a.timestamp));
     }
   }, []);
 
@@ -766,7 +768,8 @@ function App() {
       timestamp: Date.now()
     };
 
-    const updatedPrompts = [...savedPrompts, newPrompt];
+    // 새 프롬프트를 배열 맨 앞에 추가
+    const updatedPrompts = [newPrompt, ...savedPrompts];
     setSavedPrompts(updatedPrompts);
     localStorage.setItem('savedPrompts', JSON.stringify(updatedPrompts));
   };
