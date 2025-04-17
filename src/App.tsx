@@ -186,7 +186,7 @@ const SaveButton = styled(GenerateButton)`
   }
 `;
 
-const CopyButton = styled.button<CopyButtonProps>`
+const CopyButton = styled.button`
   padding: 4px 8px;
   border: none;
   border-radius: 4px;
@@ -198,8 +198,6 @@ const CopyButton = styled.button<CopyButtonProps>`
   align-items: center;
   gap: 4px;
   transition: all 0.2s ease;
-  visibility: ${props => props.$visible ? 'visible' : 'hidden'};
-  opacity: ${props => props.$visible ? 1 : 0};
 
   &:hover {
     background-color: #2d8746;
@@ -880,7 +878,10 @@ function App() {
             <ResultHeader>
               <SectionTitle>🎨 생성된 프롬프트</SectionTitle>
               {result && (
-                <CopyButton id="copyButton" onClick={() => handleSavedPromptCopy(result, 'copyButton')}>
+                <CopyButton 
+                  id="copyButton" 
+                  onClick={() => handleSavedPromptCopy(result, 'copyButton')}
+                >
                   📋 복사
                 </CopyButton>
               )}
