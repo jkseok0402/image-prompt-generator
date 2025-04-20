@@ -339,6 +339,7 @@ const Option = styled.div<OptionProps>`
   color: ${props => props.$isSelected ? '#1a73e8' : '#3c4043'};
   letter-spacing: -0.2px;
   font-weight: ${props => props.$isSelected ? '500' : '400'};
+  user-select: none;
   
   &:hover {
     background-color: ${props => props.$isSelected ? '#d2e3fc' : '#f1f3f4'};
@@ -354,9 +355,18 @@ const Checkbox = styled.input<StyledCheckboxProps>`
   border-radius: 4px;
   border: 2px solid ${props => props.$checked ? '#1a73e8' : '#dadce0'};
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   background-color: ${props => props.$checked ? '#1a73e8' : 'white'};
   position: relative;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  pointer-events: auto;
+  
+  &:checked {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+  }
   
   &:checked::after {
     content: '✓';
@@ -365,11 +375,14 @@ const Checkbox = styled.input<StyledCheckboxProps>`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
   }
 
   &:hover {
     border-color: ${props => props.$checked ? '#1557b0' : '#80868b'};
+    background-color: ${props => props.$checked ? '#1557b0' : '#f8f9fa'};
   }
 `;
 
@@ -857,7 +870,7 @@ function App() {
 
   const generatePrompt = () => {
     // 초기 번역된 사용자 프롬프트
-    let finalPrompt = translatedPrompt;
+    let finalPrompt = "Create a " + translatedPrompt + ":";
     
     // 카테고리별 선택된 옵션
     const selectedCategoryOptions: Record<string, string[]> = {};
@@ -877,7 +890,7 @@ function App() {
     
     // 줄바꿈으로 원본 번역문과 구조화된 부분 분리
     if (Object.keys(selectedCategoryOptions).length > 0) {
-      structuredPrompt += "\n\n";
+      structuredPrompt += "\n";
       
       // 주제와 구도
       const subject = selectedCategoryOptions['인물/대상'] || [];
@@ -885,8 +898,7 @@ function App() {
       if (subject.length > 0 || composition.length > 0) {
         structuredPrompt += "A " + 
           (subject.length > 0 ? subject.join(", ") : "") + 
-          (composition.length > 0 ? " in a " + composition.join(", ") : "") + 
-          ",\n";
+          (composition.length > 0 ? " in a " + composition.join(", ") : "");
       }
       
       // 스타일과 매체
@@ -895,10 +907,9 @@ function App() {
       const stylize = selectedCategoryOptions['스타일라이즈'] || [];
       if (artStyle.length > 0 || medium.length > 0 || stylize.length > 0) {
         structuredPrompt += 
-          (stylize.length > 0 ? "with " + stylize.join(", ") + " style" : "") +
-          (artStyle.length > 0 ? (stylize.length > 0 ? ", " : "") + "drawn in " + artStyle.join(", ") : "") + 
-          (medium.length > 0 ? (artStyle.length > 0 || stylize.length > 0 ? " with " : "with ") + medium.join(", ") : "") + 
-          ",\n";
+          (stylize.length > 0 ? " with " + stylize.join(", ") + " style" : "") +
+          (artStyle.length > 0 ? (stylize.length > 0 ? ", " : "") + " drawn in " + artStyle.join(", ") : "") + 
+          (medium.length > 0 ? (artStyle.length > 0 || stylize.length > 0 ? " with " : " with ") + medium.join(", ") : "");
       }
       
       // 배경, 조명, 색상
@@ -908,12 +919,11 @@ function App() {
       const mood = selectedCategoryOptions['분위기'] || [];
       
       if (background.length > 0 || lighting.length > 0 || colors.length > 0 || mood.length > 0) {
-        structuredPrompt += "set in " + 
+        structuredPrompt += " set in " + 
           (background.length > 0 ? "a " + background.join(", ") + " background" : "a scene") + 
           (lighting.length > 0 ? " with " + lighting.join(", ") : "") + 
           (colors.length > 0 ? (lighting.length > 0 ? " and " : " with ") + colors.join(", ") + " tones" : "") +
-          (mood.length > 0 ? (colors.length > 0 || lighting.length > 0 ? ", " : " with ") + "creating a " + mood.join(", ") + " mood" : "") +
-          ",\n";
+          (mood.length > 0 ? (colors.length > 0 || lighting.length > 0 ? ", " : " with ") + "creating a " + mood.join(", ") + " mood" : "");
       }
       
       // 카메라 설정 및 품질
@@ -922,19 +932,15 @@ function App() {
       
       if (camera.length > 0 || quality.length > 0) {
         structuredPrompt += 
-          (camera.length > 0 ? "captured in " + camera.join(", ") : "") + 
-          (quality.length > 0 ? (camera.length > 0 ? ", " : "") + "rendered in " + quality.join(", ") : "") + 
-          ",\n";
+          (camera.length > 0 ? " captured in " + camera.join(", ") : "") + 
+          (quality.length > 0 ? (camera.length > 0 ? ", " : "") + " rendered in " + quality.join(", ") : "");
       }
       
       // 효과
       const effects = selectedCategoryOptions['효과'] || [];
       
       if (effects.length > 0) {
-        structuredPrompt += "with " + effects.join(", ") + " effects.";
-      } else if (structuredPrompt.endsWith(",\n")) {
-        // 마지막 쉼표와 줄바꿈 제거
-        structuredPrompt = structuredPrompt.slice(0, -2) + ".";
+        structuredPrompt += " with " + effects.join(", ") + " effects";
       }
     }
     
@@ -1039,12 +1045,20 @@ function App() {
                     <Option 
                       key={option} 
                       $isSelected={selectedOptions[category]?.includes(option) || false}
-                      onClick={() => handleOptionChange(category, option)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOptionChange(category, option);
+                      }}
                     >
                       <Checkbox
                         type="checkbox"
+                        checked={selectedOptions[category]?.includes(option) || false}
                         $checked={selectedOptions[category]?.includes(option) || false}
-                        onChange={() => {}}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleOptionChange(category, option);
+                        }}
                       />
                       {option}
                     </Option>
