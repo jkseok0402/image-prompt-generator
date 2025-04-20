@@ -127,12 +127,13 @@ const Result = styled.div`
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  height: 60px;
+  height: 120px;
   overflow-y: auto;
   font-size: 0.9rem;
   line-height: 1.5;
   color: #3c4043;
   word-break: break-all;
+  white-space: pre-wrap;
 `;
 
 const ButtonContainer = styled.div`
@@ -473,6 +474,25 @@ interface SavedPrompt {
 }
 
 const categories = {
+  '인물/대상': {
+    '사람': 'person',
+    '여성': 'woman',
+    '남성': 'man',
+    '어린이': 'child',
+    '노인': 'elderly person',
+    '부부': 'couple',
+    '가족': 'family',
+    '아기': 'baby',
+    '동물': 'animal',
+    '자연': 'nature',
+    '도시': 'city',
+    '풍경': 'landscape',
+    '건물': 'building',
+    '제품': 'product',
+    '음식': 'food',
+    '꽃': 'flower',
+    '식물': 'plant'
+  },
   '구도': {
     '고각 샷': 'high angle shot',
     '항공뷰': 'aerial view',
@@ -589,29 +609,6 @@ const categories = {
     '황혼': 'dusk lighting',
     '자정': 'midnight lighting'
   },
-  '스타일라이즈': {
-    '고해상도': 'Highly detailed',
-    '초현실적': 'Ultra-realistic',
-    '추상적': 'Abstract',
-    '윔시컬': 'Whimsical',
-    '드림스케이프': 'Dreamscape',
-    '판타지': 'Fantasy',
-    'CGI': 'CGI/VFX/SFX',
-    '심도': 'Depth of Field',
-    '보케': 'Bokeh Background',
-    '로고': 'Logo Design',
-    '시네마틱': 'Cinematic',
-    '우아한': 'Elegant',
-    '장식적': 'Ornate',
-    '미래적': 'Future tech',
-    '완벽한': 'Extremely Well Made',
-    '의인화': 'Anthropomorphic',
-    '미니멀': 'Superb Minimalism',
-    '광활한': 'Expansive',
-    '파스텔': 'Pastel Colors',
-    '다이나믹': 'Dynamic',
-    '반사광': 'Lumen reflections'
-  },
   '아트 스타일': {
     '유화': 'oil painting',
     '아크릴화': 'acrylic painting',
@@ -644,6 +641,29 @@ const categories = {
     '스팀펑크': 'steampunk',
     '레트로': 'retro',
     '컨템포러리': 'contemporary'
+  },
+  '스타일라이즈': {
+    '고해상도': 'Highly detailed',
+    '초현실적': 'Ultra-realistic',
+    '추상적': 'Abstract',
+    '윔시컬': 'Whimsical',
+    '드림스케이프': 'Dreamscape',
+    '판타지': 'Fantasy',
+    'CGI': 'CGI/VFX/SFX',
+    '심도': 'Depth of Field',
+    '보케': 'Bokeh Background',
+    '로고': 'Logo Design',
+    '시네마틱': 'Cinematic',
+    '우아한': 'Elegant',
+    '장식적': 'Ornate',
+    '미래적': 'Future tech',
+    '완벽한': 'Extremely Well Made',
+    '의인화': 'Anthropomorphic',
+    '미니멀': 'Superb Minimalism',
+    '광활한': 'Expansive',
+    '파스텔': 'Pastel Colors',
+    '다이나믹': 'Dynamic',
+    '반사광': 'Lumen reflections'
   },
   '분위기': {
     '낭만적': 'romantic',
@@ -689,6 +709,24 @@ const categories = {
     '트리피': 'trippy',
     '별들의': 'stars',
     '행성들의': 'planets'
+  },
+  '카메라/렌즈 효과': {
+    '광각 렌즈': 'wide-angle lens',
+    '어안 렌즈': 'fisheye lens',
+    '망원 렌즈': 'telephoto lens',
+    '매크로 렌즈': 'macro lens',
+    '틸트 시프트': 'tilt-shift',
+    '소프트 포커스': 'soft focus',
+    '얕은 피사계 심도': 'shallow depth of field',
+    '깊은 피사계 심도': 'deep depth of field',
+    '필름 그레인': 'film grain',
+    '모션 블러': 'motion blur',
+    '나이트 비전': 'night vision',
+    '열화상': 'thermal imaging',
+    '적외선': 'infrared',
+    '파노라마': 'panoramic view',
+    '360도 뷰': '360-degree view',
+    'VR 뷰': 'VR view'
   }
 };
 
@@ -818,13 +856,90 @@ function App() {
   };
 
   const generatePrompt = () => {
+    // 초기 번역된 사용자 프롬프트
     let finalPrompt = translatedPrompt;
+    
+    // 카테고리별 선택된 옵션
+    const selectedCategoryOptions: Record<string, string[]> = {};
+    
+    // 카테고리별로 선택된 옵션 모으기
     Object.entries(selectedOptions).forEach(([category, options]) => {
       if (options.length > 0) {
-        const categoryOptions = options.map(option => categories[category as keyof typeof categories][option as keyof typeof categories[keyof typeof categories]]);
-        finalPrompt += ', ' + categoryOptions.join(', ');
+        const translatedOptions = options.map(
+          option => categories[category as keyof typeof categories][option as keyof typeof categories[keyof typeof categories]]
+        );
+        selectedCategoryOptions[category] = translatedOptions;
       }
     });
+    
+    // 구조화된 템플릿 적용
+    let structuredPrompt = "";
+    
+    // 줄바꿈으로 원본 번역문과 구조화된 부분 분리
+    if (Object.keys(selectedCategoryOptions).length > 0) {
+      structuredPrompt += "\n\n";
+      
+      // 주제와 구도
+      const subject = selectedCategoryOptions['인물/대상'] || [];
+      const composition = selectedCategoryOptions['구도'] || [];
+      if (subject.length > 0 || composition.length > 0) {
+        structuredPrompt += "A " + 
+          (subject.length > 0 ? subject.join(", ") : "") + 
+          (composition.length > 0 ? " in a " + composition.join(", ") : "") + 
+          ",\n";
+      }
+      
+      // 스타일과 매체
+      const artStyle = selectedCategoryOptions['아트 스타일'] || [];
+      const medium = selectedCategoryOptions['매체'] || [];
+      const stylize = selectedCategoryOptions['스타일라이즈'] || [];
+      if (artStyle.length > 0 || medium.length > 0 || stylize.length > 0) {
+        structuredPrompt += 
+          (stylize.length > 0 ? "with " + stylize.join(", ") + " style" : "") +
+          (artStyle.length > 0 ? (stylize.length > 0 ? ", " : "") + "drawn in " + artStyle.join(", ") : "") + 
+          (medium.length > 0 ? (artStyle.length > 0 || stylize.length > 0 ? " with " : "with ") + medium.join(", ") : "") + 
+          ",\n";
+      }
+      
+      // 배경, 조명, 색상
+      const background = selectedCategoryOptions['배경'] || [];
+      const lighting = [...(selectedCategoryOptions['조명'] || []), ...(selectedCategoryOptions['시간대 조명'] || [])];
+      const colors = selectedCategoryOptions['색상'] || [];
+      const mood = selectedCategoryOptions['분위기'] || [];
+      
+      if (background.length > 0 || lighting.length > 0 || colors.length > 0 || mood.length > 0) {
+        structuredPrompt += "set in " + 
+          (background.length > 0 ? "a " + background.join(", ") + " background" : "a scene") + 
+          (lighting.length > 0 ? " with " + lighting.join(", ") : "") + 
+          (colors.length > 0 ? (lighting.length > 0 ? " and " : " with ") + colors.join(", ") + " tones" : "") +
+          (mood.length > 0 ? (colors.length > 0 || lighting.length > 0 ? ", " : " with ") + "creating a " + mood.join(", ") + " mood" : "") +
+          ",\n";
+      }
+      
+      // 카메라 설정 및 품질
+      const camera = selectedCategoryOptions['카메라/렌즈 효과'] || [];
+      const quality = selectedCategoryOptions['품질'] || [];
+      
+      if (camera.length > 0 || quality.length > 0) {
+        structuredPrompt += 
+          (camera.length > 0 ? "captured in " + camera.join(", ") : "") + 
+          (quality.length > 0 ? (camera.length > 0 ? ", " : "") + "rendered in " + quality.join(", ") : "") + 
+          ",\n";
+      }
+      
+      // 효과
+      const effects = selectedCategoryOptions['효과'] || [];
+      
+      if (effects.length > 0) {
+        structuredPrompt += "with " + effects.join(", ") + " effects.";
+      } else if (structuredPrompt.endsWith(",\n")) {
+        // 마지막 쉼표와 줄바꿈 제거
+        structuredPrompt = structuredPrompt.slice(0, -2) + ".";
+      }
+    }
+    
+    // 최종 프롬프트 설정
+    finalPrompt += structuredPrompt;
     setResult(finalPrompt);
   };
 
@@ -982,16 +1097,17 @@ export default App;
 
 const getCategoryEmoji = (category: string): string => {
   const emojiMap: { [key: string]: string } = {
+    '인물/대상': '👤',
     '구도': '📐',
     '색상': '🎨',
     '매체': '🖼️',
     '조명': '💡',
     '시간대 조명': '🌅',
-    '스타일라이즈': '✨',
     '아트 스타일': '🖌️',
     '분위기': '🌈',
     '품질': '⭐',
-    '효과': '✨'
+    '효과': '✨',
+    '카메라/렌즈 효과': '📸'
   };
   return emojiMap[category] || '📌';
 }; 
